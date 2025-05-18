@@ -665,4 +665,69 @@
   <h2>Nombre producto</h2>
   <a href="URL_AMAZON" target="_blank">Ver en Amazon</a>
 </div>
+// Función para renderizar recomendaciones, recibe filtro de categoría
+function renderizarRecomendaciones(filtro = "Todas") {
+  contenedor.innerHTML = "";
+  const filtradas = filtro === "Todas" ? recomendaciones : recomendaciones.filter(r => r.categoria === filtro);
+
+  if (filtradas.length === 0) {
+    contenedor.innerHTML = "<p>No hay recomendaciones en esta categoría.</p>";
+    return;
+  }
+
+  filtradas.forEach(({titulo, categoria, descripcion, url, imagen}) => {
+    const div = document.createElement('div');
+    div.classList.add('recomendacion');
+    div.innerHTML = `
+      <img src="${imagen || 'https://via.placeholder.com/300x160?text=Sin+imagen'}" alt="${titulo}" />
+      <h3>${titulo}</h3>
+      <div class="categoria">${categoria}</div>
+      <p>${descripcion}</p>
+      <a href="${url}" target="_blank" rel="noopener">Ver producto</a>
+    `;
+    contenedor.appendChild(div);
+  });
+}
+
+// Inicial render
+renderizarRecomendaciones();
+
+// Agregar recomendación
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  const titulo = document.getElementById('titulo').value.trim();
+  const categoria = document.getElementById('categoria').value;
+  const descripcion = document.getElementById('descripcion').value.trim();
+  const url = document.getElementById('url').value.trim();
+  let imagen = document.getElementById('imagen').value.trim();
+
+  // Si no se pone imagen, dejamos vacío para el placeholder
+  if(imagen && !imagen.startsWith('http')) {
+    alert('Por favor ingresa una URL válida para la imagen.');
+    return;
+  }
+  if (!imagen) {
+    imagen = '';
+  }
+
+  recomendaciones.push({titulo, categoria, descripcion, url, imagen});
+  localStorage.setItem('recomendaciones', JSON.stringify(recomendaciones));
+
+  renderizarRecomendaciones(getCategoriaActiva());
+  form.reset();
+});
+
+// Filtrado por categorías
+categoriaBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    categoriaBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderizarRecomendaciones(btn.getAttribute('data-categoria'));
+  });
+});
+
+function getCategoriaActiva() {
+  const activo = document.querySelector('.categoria-lista button.active');
+  return activo ? activo.getAttribute('data-categoria') : "Todas";
+}
 
